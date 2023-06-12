@@ -4,3 +4,20 @@ spring:
     url: jdbc:mysql://localhost:3306/studyvue?useUnicode=true&characterEncoding=UTF-8
     username: root
     password: root963852741
+
+  mail:
+    host: smtp.163.com
+    username: shesupreme@163.com
+    password: MNYCLUHRZZPCIOTO
+    port: 465
+    properties:
+      from: shesupreme@163.com
+      mail:
+        smtp:
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+  data:
+    redis:
+      database: 0
+      host: localhost
+      port: 6379

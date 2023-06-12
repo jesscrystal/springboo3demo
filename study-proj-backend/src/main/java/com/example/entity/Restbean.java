@@ -6,12 +6,12 @@ import lombok.Data;
 public class Restbean<T> {
     private int status;
     private boolean success;
-    private T Message;
+    private T message;
 
     private Restbean(int status, boolean success, T message) {
         this.status = status;
         this.success = success;
-        Message = message;
+        this.message = message;
     }
 
     public static <T> Restbean<T> success(){
