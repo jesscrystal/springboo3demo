@@ -52,15 +52,25 @@ const rules = ({
   ]
 })
 const isEmailValid = ref(false)
-const onValidate = (prop,isvalid)=>{
-  if (prop==='email')
-    isEmailValid.value=isvalid
-}
+const coldTime = ref(0)
 const formRef = ref()
+const onValidate = (prop,isValid)=>{
+  if (prop==='email')
+    isEmailValid.value=isValid
+}
+
 const register = () =>{
   formRef.value.validate((isValid)=>{
     if(isValid){
-
+      post('api/auth/register',{
+        username: form.username,
+        password: form.password,
+        email: form.email,
+        code: form.code,
+      },(message)=>{
+        ElMessage.success(message)
+        router.push('/')
+      })
     }
     else {
       ElMessage.warning('请将表单填写完整')
@@ -73,6 +83,8 @@ const validateEmail = () =>{
     email: form.email
   },(message)=>{
     ElMessage.success(message)
+    coldTime.value = 60
+    setInterval(()=>coldTime.value--,1000)
   })
 }
 
@@ -87,14 +99,14 @@ const validateEmail = () =>{
     <div style="margin-top: 50px">
       <el-form :model="form" :rules="rules" @validate="onValidate" ref="formRef">
         <el-form-item prop="username">
-          <el-input v-model="form.username" type="text" placeholder="用户名">
+          <el-input v-model="form.username" :maxlength="12" type="text" placeholder="用户名">
             <template #prefix>
               <el-icon><User/></el-icon>
             </template>
           </el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input v-model="form.password" type="password" placeholder="设置密码">
+          <el-input v-model="form.password" :maxlength="18" type="password" placeholder="设置密码">
             <template #prefix>
               <el-icon><Lock/></el-icon>
             </template>
@@ -117,14 +129,16 @@ const validateEmail = () =>{
         <el-form-item prop="code">
           <el-row :gutter="10" style="width: 100%">
             <el-col :span="17">
-              <el-input v-model="form.code" type="text" placeholder="请输入验证码">
+              <el-input v-model="form.code" :maxlength="6" type="text" placeholder="请输入验证码">
                 <template #prefix>
                   <el-icon><Edit/></el-icon>
                 </template>
               </el-input>
             </el-col>
             <el-col :span="5">
-              <el-button type="success" @click="validateEmail" :disabled="!isEmailValid">发送验证码</el-button>
+              <el-button type="success" @click="validateEmail" :disabled="!isEmailValid||coldTime > 0">
+                {{coldTime > 0 ? '请稍后' + coldTime + '秒':'获取验证码'}}
+              </el-button>
             </el-col>
           </el-row>
         </el-form-item>

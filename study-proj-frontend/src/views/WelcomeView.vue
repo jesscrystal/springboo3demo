@@ -12,9 +12,16 @@
         <div style="margin-top: 10px">在这里你可以学习如何使用Java，如何搭建网站，本网站为爱心发电不含有任何收费项目</div>
     </div>
     <div style="width: 400px;background-color: white">
-      <transition name="el-fade-in-linear">
+      <transition name="el-fade-in-linear" mode="out-in">
         <router-view/>
       </transition>
+
+      <!--    mac上会出现淡入淡出的bug win11上不需要这段代码-->
+      <!--      <router-view v-slot="{ Component }">
+              <transition name="el-fade-in-linear" mode="out-in">
+                <component :is="Component" style="height: 100%"/>
+              </Transition>
+            </router-view>-->
     </div>
   </div>
 </template>
