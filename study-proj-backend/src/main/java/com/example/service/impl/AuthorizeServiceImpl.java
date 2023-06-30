@@ -67,6 +67,7 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         Account account = mapper.findAccountByNameOrEmail(email);
         if (hasAccount && account == null) return "没有此邮件地址的账户";
         if (!hasAccount && account != null) return "此邮箱已被其他用户注册";
+
         /**
          * 上面这段逻辑我不是很清楚是什么鬼，感觉好像有重复的
          * 他用一个布尔来控制然后这个布尔何时为true何时为false我没看懂
