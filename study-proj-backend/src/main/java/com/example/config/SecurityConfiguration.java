@@ -72,7 +72,7 @@ public class SecurityConfiguration {
     public PersistentTokenRepository tokenRepository(){
         JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
         jdbcTokenRepository.setDataSource(dataSource);
-        jdbcTokenRepository.setCreateTableOnStartup(true);
+        jdbcTokenRepository.setCreateTableOnStartup(false);  //有了用户登录的数据表以后记得关闭
         return jdbcTokenRepository;
     }
     @Bean

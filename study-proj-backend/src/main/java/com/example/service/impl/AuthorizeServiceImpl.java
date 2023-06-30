@@ -57,16 +57,26 @@ public class AuthorizeServiceImpl implements AuthorizeService {
          */
 
     @Override
-    public String sendValidateEmail(String email, String sessionId) {
-        String key = "email" + sessionId + ":" + email;
+    public String sendValidateEmail(String email, String sessionId,boolean hasAccount) {
+        String key = "email" + sessionId + ":" + email + ':' + hasAccount;
         if (Boolean.TRUE.equals(template.hasKey(key))){
             Long expire = Optional.ofNullable(template.getExpire(key,TimeUnit.SECONDS)).orElse(0L);
             if (expire>120)
                 return "请求过于频繁，请稍后再试！";
         }
-        if (mapper.findAccountByNameOrEmail(email) != null){
+        Account account = mapper.findAccountByNameOrEmail(email);
+        if (hasAccount && account == null) return "没有此邮件地址的账户";
+        if (!hasAccount && account != null) return "此邮箱已被其他用户注册";
+        /**
+         * 上面这段逻辑我不是很清楚是什么鬼，感觉好像有重复的
+         * 他用一个布尔来控制然后这个布尔何时为true何时为false我没看懂
+         * 按道理说只需要一个是否查询得到邮箱地址来判断是否存在有该用户即可
+         * 这个逻辑不是很清楚，先记下来这段笔记后面我看看有没有可以改进的地方
+         * 下面是初始项目编写时的代码
+         */
+        /*if (mapper.findAccountByNameOrEmail(email) != null){
             return "此邮箱已被其他用户注册！";
-        }
+        }*/
         Random random = new Random();
         int code = random.nextInt(899999)+10000;
         SimpleMailMessage message = new SimpleMailMessage();
@@ -84,26 +94,56 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         }
     }
 
+
     @Override
     public String validateAndRegister(String username, String password, String email, String code,String sessionId) {
-        String key = "email" + sessionId + ":" + email;
+        String key = "email" + sessionId + ":" + email +":false";
         if (Boolean.TRUE.equals(template.hasKey(key))){
             String s = template.opsForValue().get(key);
             if (s==null) return "验证码失效，请重新请求";
             if (s.equals(code)){
+                Account account = mapper.findAccountByNameOrEmail(username);
+                if(account != null) return "此用户名已被注册，请更换用户名";
+                template.delete(key);
                 password = encoder.encode(password);
                 if (mapper.createAccount(username,password,email)>0){
                     return null;
                 }else {
                     return "内部错误请联系管理员";
                 }
-
             }else {
                 return "验证码错误，请重新输入";
             }
         } else {
             return "请先请求一封验证码邮件";
         }
+    }
 
+    /**
+     * 这里和上面有一个相同的东西就是在email后增加了一个布尔值
+     * 为的是防止在注册页面发送了验证码邮箱后去重置页面输入密码
+     * 出现bug
+     */
+    @Override
+    public String validateOnly(String email, String code, String sessionId) {
+        String key = "email" + sessionId + ":" + email+":true";
+        if (Boolean.TRUE.equals(template.hasKey(key))){
+            String s = template.opsForValue().get(key);
+            if (s==null) return "验证码失效，请重新请求";
+            if (s.equals(code)){
+                template.delete(key);
+                return null;
+            }else {
+                return "验证码错误，请重新输入";
+            }
+        } else {
+            return "请先请求一封验证码邮件";
+        }
+    }
+
+    @Override
+    public boolean resetPassword(String password, String email) {
+        password = encoder.encode(password);
+        return mapper.resetPasswordByEmail(password, email) > 0;
     }
 }
